@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cipher Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 30%;
+            margin: auto;
+            overflow: hidden;
+            padding: 30px;
+            background-color: #fff;
+            margin-top: 50px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        select, input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 1em;
+        }
+        button {
+            background-color: #333;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #555;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e7e7e7;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Cipher Tool</h1>
+    <label for="cipherSelect">Choose a Cipher:</label>
+    <select id="cipherSelect">
+        <option value="caesarCipher">Caesar Cipher</option>
+        <option value="bruteForce">Brute Force Attack</option>
+        <option value="monoAlphabetic">Mono Alphabetic Cipher</option>
+    </select>
+
+    <div id="caesarCipher" class="cipher">
+        <input type="text" id="caesarInput" placeholder="Enter text">
+        <input type="number" id="caesarShift" placeholder="Enter shift (1-25)">
+        <button onclick="caesarEncrypt()">Encrypt</button>
+        <button onclick="caesarDecrypt()">Decrypt</button>
+    </div>
+
+    <div id="bruteForce" class="cipher" style="display: none;">
+        <input type="text" id="bruteInput" placeholder="Enter ciphertext">
+        <button onclick="bruteForceAttack()">Brute Force Attack</button>
+    </div>
+
+    <div id="monoAlphabetic" class="cipher" style="display: none;">
+        <input type="text" id="monoInput" placeholder="Enter text">
+        <button onclick="monoEncrypt()">Encrypt</button>
+        <button onclick="monoDecrypt()">Decrypt</button>
+    </div>
+
+    <div class="result" id="result"></div>
+</div>
+
+<script>
+// Caesar Cipher Functions
+function caesarEncrypt() {
+    const text = document.getElementById("caesarInput").value;
+    let shift = parseInt(document.getElementById("caesarShift").value);
+    if (shift < 1 || shift > 25) {
+        alert("Shift value must be between 1 and 25.");
+        return;
+    }
+    const result = caesarCipher(text, shift);
+    displayResult(`Encrypted Text: ${result}`);
+    clearInputs(["caesarInput", "caesarShift"]);
+}
+
+function caesarDecrypt() {
+    const text = document.getElementById("caesarInput").value;
+    let shift = parseInt(document.getElementById("caesarShift").value);
+    if (shift < 1 || shift > 25) {
+        alert("Shift value must be between 1 and 25.");
+        return;
+    }
+    const result = caesarCipher(text, -shift);
+    displayResult(`Decrypted Text: ${result}`);
+    clearInputs(["caesarInput", "caesarShift"]);
+}
+
+function caesarCipher(text, shift) {
+    return text.split('').map(char => {
+        if (char.match(/[a-z]/i)) {
+            const code = char.charCodeAt(0);
+            const base = (code >= 65 && code <= 90) ? 65 : 97;
+            return String.fromCharCode(((code - base + shift + 26) % 26) + base);
+        }
+        return char;
+    }).join('');
+}
+
+// Brute Force Caesar Cipher Attack
+function bruteForceAttack() {
+    const text = document.getElementById("bruteInput").value;
+    let results = "";
+    for (let shift = 1; shift <= 25; shift++) {
+        results += `Shift ${shift}: ${caesarCipher(text, -shift)}\n`;
+    }
+    displayResult(results);
+    clearInputs(["bruteInput"]);
+}
+
+// Mono Alphabetic Cipher Functions
+let monoKey = generateRandomKey();
+
+function generateRandomKey() {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let shuffled = alphabet.split('').sort(() => Math.random() - 0.5).join('');
+    return Object.fromEntries(alphabet.split('').map((char, i) => [char, shuffled[i]]));
+}
+
+function monoEncrypt() {
+    const text = document.getElementById("monoInput").value.toUpperCase();
+    let result = text.split('').map(char => monoKey[char] || char).join('');
+    displayResult(`Encrypted Text: ${result}`);
+    clearInputs(["monoInput"]);
+}
+
+function monoDecrypt() {
+    const text = document.getElementById("monoInput").value.toUpperCase();
+    const inverseKey = Object.fromEntries(Object.entries(monoKey).map(([k, v]) => [v, k]));
+    let result = text.split('').map(char => inverseKey[char] || char).join('');
+    displayResult(`Decrypted Text: ${result}`);
+    clearInputs(["monoInput"]);
+}
+
+function displayResult(result) {
+    document.getElementById("result").innerText = result;
+}
+
+function clearInputs(inputIds) {
+    inputIds.forEach(id => {
+        document.getElementById(id).value = '';
+    });
+}
+
+// Event Listener to Show/Hide Sections
+document.getElementById("cipherSelect").addEventListener("change", function() {
+    document.querySelectorAll(".cipher").forEach(el => el.style.display = 'none');
+    const selectedCipher = this.value;
+    document.getElementById(selectedCipher).style.display = 'block';
+});
+</script>
+
+</body>
+</html>
